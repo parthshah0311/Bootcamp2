@@ -1,0 +1,216 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "bootcamp2"
+		},
+		"AzureSqlDatabase1_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'AzureSqlDatabase1'"
+		},
+		"ls_sqldatabase_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'ls_sqldatabase'"
+		},
+		"AzureDataLakeStorage1_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://backenddata46.dfs.core.windows.net/"
+		},
+		"AzureDataLakeStorage1_properties_typeProperties_tenant": {
+			"type": "string",
+			"defaultValue": "6eefac15-18e8-47a1-befc-917b9ff92e8b"
+		},
+		"AzureDataLakeStorage1_properties_typeProperties_servicePrincipalId": {
+			"type": "string",
+			"defaultValue": "345f6a76-ed7a-4bf4-a65c-8f96a6831c88"
+		},
+		"AzureKeyVault1_properties_typeProperties_baseUrl": {
+			"type": "string",
+			"defaultValue": "https://bootcampkey2.vault.azure.net/"
+		},
+		"AzureSqlDatabase1_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "retailsales99.database.windows.net"
+		},
+		"AzureSqlDatabase1_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "bootcamp2"
+		},
+		"AzureSqlDatabase1_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "parth"
+		},
+		"ls_bronze_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://bronzestorage65.dfs.core.windows.net/"
+		},
+		"ls_bronze_properties_typeProperties_tenant": {
+			"type": "string",
+			"defaultValue": "6eefac15-18e8-47a1-befc-917b9ff92e8b"
+		},
+		"ls_bronze_properties_typeProperties_servicePrincipalId": {
+			"type": "string",
+			"defaultValue": "345f6a76-ed7a-4bf4-a65c-8f96a6831c88"
+		},
+		"ls_onpremise_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "Shah\\MSSQLSERVER2"
+		},
+		"ls_onpremise_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "bootcamp2"
+		},
+		"ls_onpremise_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "sa"
+		},
+		"ls_restapi_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://raw.githubusercontent.com/parthshah0311/Bootcamp2/refs/heads/main/sales_sample.json"
+		},
+		"ls_silver_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://bronzestorage65.dfs.core.windows.net/"
+		},
+		"ls_silver_properties_typeProperties_tenant": {
+			"type": "string",
+			"defaultValue": "6eefac15-18e8-47a1-befc-917b9ff92e8b"
+		},
+		"ls_silver_properties_typeProperties_servicePrincipalId": {
+			"type": "string",
+			"defaultValue": "345f6a76-ed7a-4bf4-a65c-8f96a6831c88"
+		},
+		"ls_sqldatabase_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "retailsales99.database.windows.net"
+		},
+		"ls_sqldatabase_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "bootcamp2"
+		},
+		"ls_sqldatabase_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "parth"
+		},
+		"containerUri": {
+			"type": "string",
+			"metadata": "URI to storage account containing linked ARM templates"
+		},
+		"containerSasToken": {
+			"type": "string",
+			"metadata": "Sas token to storage account containing linked ARM templates"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "bootcamp2_ArmTemplate_0",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2024-03-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_0.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					},
+					"AzureSqlDatabase1_password": {
+						"value": "[parameters('AzureSqlDatabase1_password')]"
+					},
+					"ls_sqldatabase_password": {
+						"value": "[parameters('ls_sqldatabase_password')]"
+					},
+					"AzureKeyVault1_properties_typeProperties_baseUrl": {
+						"value": "[parameters('AzureKeyVault1_properties_typeProperties_baseUrl')]"
+					},
+					"AzureSqlDatabase1_properties_typeProperties_server": {
+						"value": "[parameters('AzureSqlDatabase1_properties_typeProperties_server')]"
+					},
+					"AzureSqlDatabase1_properties_typeProperties_database": {
+						"value": "[parameters('AzureSqlDatabase1_properties_typeProperties_database')]"
+					},
+					"AzureSqlDatabase1_properties_typeProperties_userName": {
+						"value": "[parameters('AzureSqlDatabase1_properties_typeProperties_userName')]"
+					},
+					"ls_restapi_properties_typeProperties_url": {
+						"value": "[parameters('ls_restapi_properties_typeProperties_url')]"
+					},
+					"ls_sqldatabase_properties_typeProperties_server": {
+						"value": "[parameters('ls_sqldatabase_properties_typeProperties_server')]"
+					},
+					"ls_sqldatabase_properties_typeProperties_database": {
+						"value": "[parameters('ls_sqldatabase_properties_typeProperties_database')]"
+					},
+					"ls_sqldatabase_properties_typeProperties_userName": {
+						"value": "[parameters('ls_sqldatabase_properties_typeProperties_userName')]"
+					},
+					"AzureDataLakeStorage1_properties_typeProperties_url": {
+						"value": "[parameters('AzureDataLakeStorage1_properties_typeProperties_url')]"
+					},
+					"AzureDataLakeStorage1_properties_typeProperties_tenant": {
+						"value": "[parameters('AzureDataLakeStorage1_properties_typeProperties_tenant')]"
+					},
+					"AzureDataLakeStorage1_properties_typeProperties_servicePrincipalId": {
+						"value": "[parameters('AzureDataLakeStorage1_properties_typeProperties_servicePrincipalId')]"
+					},
+					"ls_bronze_properties_typeProperties_url": {
+						"value": "[parameters('ls_bronze_properties_typeProperties_url')]"
+					},
+					"ls_bronze_properties_typeProperties_tenant": {
+						"value": "[parameters('ls_bronze_properties_typeProperties_tenant')]"
+					},
+					"ls_bronze_properties_typeProperties_servicePrincipalId": {
+						"value": "[parameters('ls_bronze_properties_typeProperties_servicePrincipalId')]"
+					},
+					"ls_onpremise_properties_typeProperties_server": {
+						"value": "[parameters('ls_onpremise_properties_typeProperties_server')]"
+					},
+					"ls_onpremise_properties_typeProperties_database": {
+						"value": "[parameters('ls_onpremise_properties_typeProperties_database')]"
+					},
+					"ls_onpremise_properties_typeProperties_userName": {
+						"value": "[parameters('ls_onpremise_properties_typeProperties_userName')]"
+					},
+					"ls_silver_properties_typeProperties_url": {
+						"value": "[parameters('ls_silver_properties_typeProperties_url')]"
+					},
+					"ls_silver_properties_typeProperties_tenant": {
+						"value": "[parameters('ls_silver_properties_typeProperties_tenant')]"
+					},
+					"ls_silver_properties_typeProperties_servicePrincipalId": {
+						"value": "[parameters('ls_silver_properties_typeProperties_servicePrincipalId')]"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "bootcamp2_ArmTemplate_1",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2024-03-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_1.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					}
+				}
+			},
+			"dependsOn": [
+				"[resourceId('Microsoft.Resources/deployments', 'bootcamp2_ArmTemplate_0')]"
+			]
+		}
+	]
+}

@@ -1,0 +1,81 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"value": "bootcamp2"
+		},
+		"AzureSqlDatabase1_password": {
+			"value": ""
+		},
+		"ls_sqldatabase_password": {
+			"value": ""
+		},
+		"AzureDataLakeStorage1_properties_typeProperties_url": {
+			"value": "https://backenddata46.dfs.core.windows.net/"
+		},
+		"AzureDataLakeStorage1_properties_typeProperties_tenant": {
+			"value": "6eefac15-18e8-47a1-befc-917b9ff92e8b"
+		},
+		"AzureDataLakeStorage1_properties_typeProperties_servicePrincipalId": {
+			"value": "345f6a76-ed7a-4bf4-a65c-8f96a6831c88"
+		},
+		"AzureKeyVault1_properties_typeProperties_baseUrl": {
+			"value": "https://bootcampkey2.vault.azure.net/"
+		},
+		"AzureSqlDatabase1_properties_typeProperties_server": {
+			"value": "retailsales99.database.windows.net"
+		},
+		"AzureSqlDatabase1_properties_typeProperties_database": {
+			"value": "bootcamp2"
+		},
+		"AzureSqlDatabase1_properties_typeProperties_userName": {
+			"value": "parth"
+		},
+		"ls_bronze_properties_typeProperties_url": {
+			"value": "https://bronzestorage65.dfs.core.windows.net/"
+		},
+		"ls_bronze_properties_typeProperties_tenant": {
+			"value": "6eefac15-18e8-47a1-befc-917b9ff92e8b"
+		},
+		"ls_bronze_properties_typeProperties_servicePrincipalId": {
+			"value": "345f6a76-ed7a-4bf4-a65c-8f96a6831c88"
+		},
+		"ls_onpremise_properties_typeProperties_server": {
+			"value": "Shah\\MSSQLSERVER2"
+		},
+		"ls_onpremise_properties_typeProperties_database": {
+			"value": "bootcamp2"
+		},
+		"ls_onpremise_properties_typeProperties_userName": {
+			"value": "sa"
+		},
+		"ls_restapi_properties_typeProperties_url": {
+			"value": "https://raw.githubusercontent.com/parthshah0311/Bootcamp2/refs/heads/main/sales_sample.json"
+		},
+		"ls_silver_properties_typeProperties_url": {
+			"value": "https://bronzestorage65.dfs.core.windows.net/"
+		},
+		"ls_silver_properties_typeProperties_tenant": {
+			"value": "6eefac15-18e8-47a1-befc-917b9ff92e8b"
+		},
+		"ls_silver_properties_typeProperties_servicePrincipalId": {
+			"value": "345f6a76-ed7a-4bf4-a65c-8f96a6831c88"
+		},
+		"ls_sqldatabase_properties_typeProperties_server": {
+			"value": "retailsales99.database.windows.net"
+		},
+		"ls_sqldatabase_properties_typeProperties_database": {
+			"value": "bootcamp2"
+		},
+		"ls_sqldatabase_properties_typeProperties_userName": {
+			"value": "parth"
+		},
+		"containerUri": {
+			"value": ""
+		},
+		"containerSasToken": {
+			"value": ""
+		}
+	}
+}
