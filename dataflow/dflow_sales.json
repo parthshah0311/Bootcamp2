@@ -1,0 +1,107 @@
+{
+	"name": "dflow_sales",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ds_saledataflow",
+						"type": "DatasetReference"
+					},
+					"name": "source1"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_silverslaes",
+						"type": "DatasetReference"
+					},
+					"name": "dssilversales"
+				}
+			],
+			"transformations": [
+				{
+					"name": "MapDriftedColumns",
+					"description": "Creates an explicit mapping for each drifted column"
+				},
+				{
+					"name": "SelectColumns"
+				},
+				{
+					"name": "aggregate1"
+				},
+				{
+					"name": "split1"
+				},
+				{
+					"name": "Salesdatereplacenull"
+				}
+			],
+			"scriptLines": [
+				"parameters{",
+				"     Filename as string (concat('sales_data_',toString(year(currentDate())),'-',toString(month(currentDate())),'-',toString(dayOfMonth(currentDate())),'-',toString(hour(currentDate())),'-',toString(minute(currentDate())),'-',toString(second(currentDate()))))",
+				"}",
+				"source(output(",
+				"          CustomerID as double,",
+				"          ProductID as short,",
+				"          Quantity as short,",
+				"          SaleDate as date,",
+				"          SaleID as double,",
+				"          TotalAmount as double,",
+				"          amount as double,",
+				"          category as short,",
+				"          date as date,",
+				"          id as double,",
+				"          value1 as double,",
+				"          value2 as short,",
+				"          value3 as short",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     documentForm: 'documentPerLine') ~> source1",
+				"source1 derive(TotalAmount = iif(isNull(TotalAmount), toDecimal(byName('amount')), toDecimal(TotalAmount)),",
+				"          category = toString(byName('category')),",
+				"          SaleDate = iif(isNull(SaleDate),toString(byName('date')),toString(SaleDate)),",
+				"          SaleID = iif(isNull(SaleID),toString(byName('id')),toString(SaleID)),",
+				"          CustomerID = iif(isNull(CustomerID),toString(byName('value1')),toString(CustomerID)),",
+				"          ProductID = iif(isNull(ProductID),toString(byName('value2')),toString(ProductID)),",
+				"          Quantity = iif(isNull(Quantity),toString(byName('value3')),toString(Quantity))) ~> MapDriftedColumns",
+				"MapDriftedColumns select(mapColumn(",
+				"          SaleID,",
+				"          CustomerID,",
+				"          ProductID,",
+				"          SaleDate,",
+				"          Quantity,",
+				"          TotalAmount",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> SelectColumns",
+				"SelectColumns aggregate(groupBy(SaleID),",
+				"     each(match(name!='SaleID'), $$ = first($$))) ~> aggregate1",
+				"aggregate1 split(!isNull(CustomerID) && !isNull(ProductID) && !isNull(Quantity) && !isNull(TotalAmount),",
+				"     disjoint: false) ~> split1@(ValidRecords, InValidRecords)",
+				"split1@ValidRecords derive(SaleDate = iif(isNull(SaleDate), toString(currentDate()), SaleDate)) ~> Salesdatereplacenull",
+				"Salesdatereplacenull sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     truncate: true,",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     mapColumn(",
+				"          SaleID,",
+				"          CustomerID,",
+				"          ProductID,",
+				"          SaleDate,",
+				"          Quantity,",
+				"          TotalAmount",
+				"     ),",
+				"     partitionBy('hash', 1)) ~> dssilversales"
+			]
+		}
+	}
+}

@@ -1,0 +1,305 @@
+{
+	"name": "Mainpipeline",
+	"properties": {
+		"activities": [
+			{
+				"name": "On-prem copy",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ds_custsql",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ds_custtrgrt",
+						"type": "DatasetReference",
+						"parameters": {
+							"filename": {
+								"value": "@trim(concat('cust_data_', formatDateTime(addhours(utcNow(),-4), 'yyyyMMdd_HH')))",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			},
+			{
+				"name": "Productcopy",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Get parentfolder",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"wildcardFolderPath": "products",
+							"wildcardFileName": "*.csv",
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings",
+							"copyBehavior": "PreserveHierarchy"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ds_rawdata",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ds_productbronze",
+						"type": "DatasetReference",
+						"parameters": {
+							"filename": {
+								"value": "@trim(concat('product_data_', formatDateTime(addHours(utcNow(), -4), 'yyyy-MM-dd-HH-mm-ss'), '.csv'))\n",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			},
+			{
+				"name": "Get parentfolder",
+				"type": "GetMetadata",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "ds_rawdata",
+						"type": "DatasetReference"
+					},
+					"fieldList": [
+						"childItems"
+					],
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					},
+					"formatSettings": {
+						"type": "DelimitedTextReadSettings"
+					}
+				}
+			},
+			{
+				"name": "dflow_customers",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "On-prem copy",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "dflow_customers",
+						"type": "DataFlowReference",
+						"parameters": {
+							"Filename": "concat('cust_data_',toString(year(currentDate())),toString(month(currentDate())),toString(dayOfMonth(currentDate())),'_',toString(hour(currentDate())))"
+						}
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			},
+			{
+				"name": "dflow_products",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "Productcopy",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "dflow_products",
+						"type": "DataFlowReference",
+						"parameters": {
+							"filename": "concat('product_data_', \r\n       toString(year(currentDate())), '-', \r\n       lpad(toString(month(currentDate())), 2, '0'), '-', \r\n       lpad(toString(dayOfMonth(currentDate())), 2, '0'), '-', \r\n       lpad(toString(hour(currentDate())), 2, '0'), '-', \r\n       lpad(toString(minute(currentDate())), 2, '0'), '-', \r\n       lpad(toString(second(currentDate())), 2, '0'), \r\n       '.csv')\r\n"
+						}
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			},
+			{
+				"name": "dflow_sales",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "dflow_products",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "dflow_sales",
+						"type": "DataFlowReference",
+						"parameters": {
+							"Filename": "concat('sales_data_', \r\n    toString(year(currentDate())), '-', \r\n    toString(month(currentDate())), '-', \r\n    toString(dayOfMonth(currentDate())), '-',\r\n    toString(hour(currentDate())), '-',\r\n    toString(minute(currentDate())), '-',\r\n    toString(second(currentDate())))\r\n"
+						}
+					},
+					"compute": {
+						"coreCount": 16,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			},
+			{
+				"name": "silvertosql",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "dflow_sales",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "silvertosql",
+						"type": "DataFlowReference"
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2025-03-14T19:12:28Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

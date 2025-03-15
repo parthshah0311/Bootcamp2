@@ -1,0 +1,24 @@
+{
+	"name": "tg_Scheduletrigger",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "Mainpipeline",
+					"type": "PipelineReference"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Hour",
+				"interval": 1,
+				"startTime": "2025-03-13T12:00:00",
+				"timeZone": "Eastern Standard Time"
+			}
+		}
+	}
+}

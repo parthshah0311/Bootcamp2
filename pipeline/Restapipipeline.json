@@ -1,0 +1,62 @@
+{
+	"name": "Restapipipeline",
+	"properties": {
+		"activities": [
+			{
+				"name": "RestAPI Copy",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "RestSource",
+						"httpRequestTimeout": "00:01:40",
+						"requestInterval": "00.00:00:00.010",
+						"requestMethod": "GET",
+						"paginationRules": {
+							"supportRFC5988": "true"
+						}
+					},
+					"sink": {
+						"type": "JsonSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "JsonWriteSettings"
+						}
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "ds_restapi",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ds_salesjson",
+						"type": "DatasetReference",
+						"parameters": {
+							"filename": {
+								"value": "@trim(concat('sales_data_', formatDateTime(addHours(utcNow(), -4), 'yyyy-MM-dd-HH-mm-ss'), '.json'))",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2025-03-14T15:05:15Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

@@ -1,0 +1,42 @@
+{
+	"name": "ds_custsql",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_onpremise",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "SqlServerTable",
+		"schema": [
+			{
+				"name": "ProductID",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "ProductName",
+				"type": "varchar"
+			},
+			{
+				"name": "Category",
+				"type": "varchar"
+			},
+			{
+				"name": "Price",
+				"type": "decimal",
+				"precision": 10,
+				"scale": 2
+			},
+			{
+				"name": "StockQuantity",
+				"type": "int",
+				"precision": 10
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "customers_sample"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

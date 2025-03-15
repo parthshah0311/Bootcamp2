@@ -1,0 +1,87 @@
+{
+	"name": "dflow_customers",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ds_custdataflow",
+						"type": "DatasetReference"
+					},
+					"name": "dscusttrgrt"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_silvercust",
+						"type": "DatasetReference"
+					},
+					"name": "dssilvercust"
+				}
+			],
+			"transformations": [
+				{
+					"name": "ReplaceNullofothercolumns"
+				},
+				{
+					"name": "RemovingPhoneColumn"
+				},
+				{
+					"name": "Distinctrowbycustid"
+				},
+				{
+					"name": "checknullagain"
+				},
+				{
+					"name": "RemoveNullCustID"
+				},
+				{
+					"name": "Filterunknowncityandcountry"
+				}
+			],
+			"scriptLines": [
+				"parameters{",
+				"     Filename as string (concat('cust_data_',toString(year(currentDate())),toString(month(currentDate())),toString(dayOfMonth(currentDate())),'_',toString(hour(currentDate()))))",
+				"}",
+				"source(output(",
+				"          CustomerID as short,",
+				"          CustomerName as string,",
+				"          Email as string,",
+				"          Phone as string,",
+				"          City as string,",
+				"          Country as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> dscusttrgrt",
+				"RemoveNullCustID derive(Email = iif(isNull(CustomerID), Email, iif(isNull(Email), 'Unknown', Email)),",
+				"          City = iif(isNull(City), 'Unknown', City),",
+				"          Country = iif(isNull(Country), 'Unknown', Country)) ~> ReplaceNullofothercolumns",
+				"ReplaceNullofothercolumns select(mapColumn(",
+				"          CustomerID,",
+				"          CustomerName,",
+				"          Email,",
+				"          City,",
+				"          Country",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> RemovingPhoneColumn",
+				"dscusttrgrt aggregate(groupBy(CustomerID),",
+				"     each(match(name!='CustomerID'), $$ = first($$))) ~> Distinctrowbycustid",
+				"RemovingPhoneColumn alterRow(deleteIf(isNull(CustomerID))) ~> checknullagain",
+				"Distinctrowbycustid filter(!isNull(CustomerID)) ~> RemoveNullCustID",
+				"checknullagain filter(City != 'Unknown' && Country != 'Unknown') ~> Filterunknowncityandcountry",
+				"Filterunknowncityandcountry sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     truncate: true,",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> dssilvercust"
+			]
+		}
+	}
+}

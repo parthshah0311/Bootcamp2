@@ -1,0 +1,22 @@
+{
+	"name": "ls_silver",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "AzureBlobFS",
+		"typeProperties": {
+			"url": "https://bronzestorage65.dfs.core.windows.net/",
+			"tenant": "6eefac15-18e8-47a1-befc-917b9ff92e8b",
+			"servicePrincipalId": "345f6a76-ed7a-4bf4-a65c-8f96a6831c88",
+			"servicePrincipalCredentialType": "ServicePrincipalKey",
+			"servicePrincipalCredential": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "AzureKeyVault1",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "backendkey"
+			}
+		}
+	}
+}

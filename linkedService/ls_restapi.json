@@ -1,0 +1,13 @@
+{
+	"name": "ls_restapi",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "RestService",
+		"typeProperties": {
+			"url": "https://raw.githubusercontent.com/parthshah0311/Bootcamp2/refs/heads/main/sales_sample.json",
+			"enableServerCertificateValidation": true,
+			"authenticationType": "Anonymous"
+		}
+	}
+}

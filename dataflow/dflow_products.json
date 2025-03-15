@@ -1,0 +1,97 @@
+{
+	"name": "dflow_products",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ds_productdataflow",
+						"type": "DatasetReference"
+					},
+					"name": "productsource"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_silverproduct",
+						"type": "DatasetReference"
+					},
+					"name": "productsink"
+				}
+			],
+			"transformations": [
+				{
+					"name": "AggregatePrice"
+				},
+				{
+					"name": "join1"
+				},
+				{
+					"name": "Replacepricenullvalue"
+				},
+				{
+					"name": "DistinctbyProdid"
+				},
+				{
+					"name": "SelectDistinctcolumns"
+				},
+				{
+					"name": "Stockquantitycheck"
+				},
+				{
+					"name": "Pricecheck"
+				},
+				{
+					"name": "ProductIDtoInt"
+				}
+			],
+			"scriptLines": [
+				"parameters{",
+				"     filename as string (concat('product_data_',toString(year(currentDate())),'-',toString(month(currentDate())),'-',toString(dayOfMonth(currentDate())),'-',toString(hour(currentDate())),'-',toString(minute(currentDate())),'-',toString(second(currentDate()))))",
+				"}",
+				"source(output(",
+				"          ProductID as double,",
+				"          ProductName as string,",
+				"          Category as string,",
+				"          Price as double,",
+				"          StockQuantity as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> productsource",
+				"productsource aggregate(groupBy(Category),",
+				"     AvgPrice = round(avg(Price),2)) ~> AggregatePrice",
+				"AggregatePrice, productsource join(AggregatePrice@Category == productsource@Category,",
+				"     joinType:'inner',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join1",
+				"join1 derive(Price = iif(isNull(Price), AvgPrice, Price)) ~> Replacepricenullvalue",
+				"SelectDistinctcolumns aggregate(groupBy(ProductID),",
+				"     each(match(name!='ProductID'), $$ = first($$))) ~> DistinctbyProdid",
+				"Replacepricenullvalue select(mapColumn(",
+				"          ProductID,",
+				"          ProductName,",
+				"          Category = productsource@Category,",
+				"          Price,",
+				"          StockQuantity",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> SelectDistinctcolumns",
+				"DistinctbyProdid derive(StockQuantity = iif(or(equals(toString(StockQuantity), '0'), equals(toString(StockQuantity), 'None')), 0, toInteger(StockQuantity))) ~> Stockquantitycheck",
+				"Stockquantitycheck derive(Price = iif(equals(toString(StockQuantity), '0'), 0, toInteger(Price))) ~> Pricecheck",
+				"Pricecheck derive(ProductID = toInteger(ProductID)) ~> ProductIDtoInt",
+				"ProductIDtoInt sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     truncate: true,",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> productsink"
+			]
+		}
+	}
+}

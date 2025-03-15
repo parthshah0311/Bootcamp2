@@ -1,0 +1,239 @@
+{
+	"name": "silvertosql",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ds_silverslaes",
+						"type": "DatasetReference"
+					},
+					"name": "sales"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_silverproduct",
+						"type": "DatasetReference"
+					},
+					"name": "product"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_silvercust",
+						"type": "DatasetReference"
+					},
+					"name": "customer"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_revenueperproduct",
+						"type": "DatasetReference"
+					},
+					"name": "revenueperproduct"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_inventory",
+						"type": "DatasetReference"
+					},
+					"name": "Inventory"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_topcustspend",
+						"type": "DatasetReference"
+					},
+					"name": "TopCustomerSpend"
+				}
+			],
+			"transformations": [
+				{
+					"name": "join1"
+				},
+				{
+					"name": "aggregate1"
+				},
+				{
+					"name": "join2"
+				},
+				{
+					"name": "aggregate2"
+				},
+				{
+					"name": "join3"
+				},
+				{
+					"name": "aggregate3"
+				},
+				{
+					"name": "AlterRow1"
+				},
+				{
+					"name": "AlterRow2"
+				},
+				{
+					"name": "AlterRow3"
+				},
+				{
+					"name": "lookup1"
+				},
+				{
+					"name": "lookup2"
+				},
+				{
+					"name": "lookup3"
+				},
+				{
+					"name": "window1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          SaleID as double,",
+				"          CustomerID as double,",
+				"          ProductID as short,",
+				"          SaleDate as date,",
+				"          Quantity as short,",
+				"          TotalAmount as double",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> sales",
+				"source(output(",
+				"          ProductID as short,",
+				"          ProductName as string,",
+				"          Category as string,",
+				"          Price as short,",
+				"          StockQuantity as short",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> product",
+				"source(output(",
+				"          CustomerID as short,",
+				"          CustomerName as string,",
+				"          Email as string,",
+				"          City as string,",
+				"          Country as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> customer",
+				"sales, product join(sales@ProductID == product@ProductID,",
+				"     joinType:'inner',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join1",
+				"join1 aggregate(groupBy(product@ProductID,",
+				"          ProductName,",
+				"          Category,",
+				"          Price,",
+				"          StockQuantity),",
+				"     TotalAmount = round(sum(TotalAmount),2)) ~> aggregate1",
+				"customer, sales join(customer@CustomerID == sales@CustomerID,",
+				"     joinType:'inner',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join2",
+				"join2 aggregate(groupBy(customer@CustomerID,",
+				"          CustomerName,",
+				"          Email,",
+				"          City,",
+				"          Country),",
+				"     TotalAmount = round(sum(TotalAmount),2)) ~> aggregate2",
+				"product, sales join(product@ProductID == sales@ProductID,",
+				"     joinType:'inner',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join3",
+				"join3 aggregate(groupBy(product@ProductID,",
+				"          ProductName,",
+				"          Category,",
+				"          StockQuantity),",
+				"     TotalSold = sum(Quantity),",
+				"          RemainingStock = first(StockQuantity)-sum(Quantity)) ~> aggregate3",
+				"lookup3 alterRow(upsertIf(iif(isNull(aggregate2@CustomerID),true(),false()))) ~> AlterRow1",
+				"lookup2 alterRow(upsertIf(iif(isNull(aggregate3@ProductID),true(),false()))) ~> AlterRow2",
+				"lookup1 alterRow(upsertIf(iif(!isNull(aggregate1@ProductID),true(),false())),",
+				"     insertIf(iif(isNull(aggregate1@ProductID),true(),false()))) ~> AlterRow3",
+				"aggregate1, product lookup(aggregate1@ProductID == product@ProductID,",
+				"     multiple: false,",
+				"     pickup: 'first',",
+				"     asc(product@ProductID, true),",
+				"     broadcast: 'auto')~> lookup1",
+				"aggregate3, product lookup(aggregate3@ProductID == product@ProductID,",
+				"     multiple: false,",
+				"     pickup: 'first',",
+				"     asc(product@ProductID, true),",
+				"     broadcast: 'auto')~> lookup2",
+				"window1, customer lookup(aggregate2@CustomerID == customer@CustomerID,",
+				"     multiple: false,",
+				"     pickup: 'first',",
+				"     asc(customer@CustomerID, true),",
+				"     broadcast: 'auto')~> lookup3",
+				"aggregate2 window(desc(TotalAmount, true),",
+				"     Rank = rank()) ~> window1",
+				"AlterRow3 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          ProductID as integer,",
+				"          ProductName as string,",
+				"          Category as string,",
+				"          Price as decimal(10,2),",
+				"          StockQuantity as integer,",
+				"          TotalAmount as decimal(15,2)",
+				"     ),",
+				"     deletable:true,",
+				"     insertable:true,",
+				"     updateable:true,",
+				"     upsertable:true,",
+				"     keys:['ProductID'],",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> revenueperproduct",
+				"AlterRow2 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          ProductID as integer,",
+				"          ProductName as string,",
+				"          Category as string,",
+				"          StockQuantity as integer,",
+				"          TotalSold as integer,",
+				"          RemainingStock as integer",
+				"     ),",
+				"     deletable:true,",
+				"     insertable:true,",
+				"     updateable:true,",
+				"     upsertable:true,",
+				"     keys:['ProductID'],",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> Inventory",
+				"AlterRow1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          CustomerID as integer,",
+				"          CustomerName as string,",
+				"          Email as string,",
+				"          City as string,",
+				"          Country as string,",
+				"          TotalAmount as decimal(18,2)",
+				"     ),",
+				"     deletable:true,",
+				"     insertable:true,",
+				"     updateable:true,",
+				"     upsertable:true,",
+				"     keys:['CustomerID'],",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> TopCustomerSpend"
+			]
+		}
+	}
+}
